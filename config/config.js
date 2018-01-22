@@ -1,0 +1,1 @@
+module.exports.SEED = '@esTe12E@sUnSeed#ChUnGo';
