@@ -4,10 +4,10 @@ var mdAutenticacion = require('../middlewares/autenticacion');
 
 var app = express();
 
-var Usuario = require('../models/usuario');
+var Hospital = require('../models/hospital');
 
 // =============================
-// OBTENER TODOS LOS USUARIOS
+// OBTENER TODOS LOS HOSPITALES
 // =============================
 
 app.get('/', (req, res, next) => { // next es usado en middlewares etc, pero no en CRUD REST normalmente
@@ -15,46 +15,44 @@ app.get('/', (req, res, next) => { // next es usado en middlewares etc, pero no 
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({}, 'nombre email img role')
+    Hospital.find({}, 'nombre usuario')
         .skip(desde) // se salta los primeros....desde ¡ya está paginado!
         .limit(5) //limita el resultado a los cinco primeros registros.
-        .exec((err, usuarios) => {
+        .populate('usuario', 'nombre email') // Devuelve el objeto usuario en vez de su id. 2do argumento filtra los campos que queremos devolver
+        .exec((err, hospitales) => {
 
             if (err) {
 
                 return res.status(500).json({
                     ok: false,
-                    mensaje: 'Error cargando usuario',
+                    mensaje: 'Error cargando hospital',
                     errors: err
                 });
 
             }
 
-            Usuario.count({}, (err, total) => {
-                    if (err) {
-                        return res.status(500).json({
-                            ok: false,
-                            mensaje: 'Error cargando usuario',
-                            errors: err
-                        });
-                    }
-
-                    return res.status(200).json({
-                        ok: true,
-                        usuarios: usuarios,
-                        total: total
+            Hospital.count({}, (err, total) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'Error cargando hospital',
+                        errors: err
                     });
                 }
 
-            );
-
+                return res.status(200).json({
+                    ok: true,
+                    hospitales: hospitales,
+                    total: total
+                });
+            });
         });
 
 });
 
 
 // =============================
-// ACTUALIZAR USUARIO
+// ACTUALIZAR HOSPITAL
 // =============================
 
 app.put('/:id', [mdAutenticacion.verificaToken], (req, res) => {
@@ -63,7 +61,7 @@ app.put('/:id', [mdAutenticacion.verificaToken], (req, res) => {
     var body = req.body; // funciona porque tenemos el body parser, si no saldría undefined
 
 
-    Usuario.findById(id, (err, usuario) => {
+    Hospital.findById(id, (err, hospital) => {
 
         if (err) {
 
@@ -73,38 +71,35 @@ app.put('/:id', [mdAutenticacion.verificaToken], (req, res) => {
 
             return res.status(status).json({
                 ok: false,
-                mensaje: 'Error al actualizar usuario',
+                mensaje: 'Error al actualizar hsopital',
                 errors: err
             });
 
         }
 
-        if (!usuario) return res.status(400).json({
+        if (!hospital) return res.status(400).json({
             ok: false,
-            mensaje: 'El usuario no existe',
-            errors: { message: 'No existe un usario con el id ' + id }
+            mensaje: 'El hospital no existe',
+            errors: { message: 'No existe un hospital con el id ' + id }
         });
 
-        usuario.nombre = body.nombre;
-        usuario.email = body.email;
-        usuario.role = body.role;
+        hospital.nombre = body.nombre;
+        hospital.usuario = req.usuario._id;
 
-        usuario.save((err, usuarioGuardado) => {
+        hospital.save((err, hospitalGuardado) => {
 
             if (err) {
                 return res.status(400).json({
                     ok: false,
-                    mensaje: 'Error al actualizar usuario',
+                    mensaje: 'Error al actualizar hospital',
                     errors: err
                 });
             }
 
-            if (usuarioGuardado) usuarioGuardado.password = null;
-
             return res.status(200).json({
                 ok: true,
-                mensaje: 'Usuario actualizado',
-                usuario: usuarioGuardado
+                mensaje: 'Hospital actualizado',
+                hospital: hospitalGuardado
 
             });
 
@@ -116,21 +111,19 @@ app.put('/:id', [mdAutenticacion.verificaToken], (req, res) => {
 
 
 // =============================
-// CREAR UN NUEVO USUARIO
+// CREAR UN NUEVO HOSPITAL
 // =============================
 
 app.post('/', [mdAutenticacion.verificaToken], (req, res) => {
 
     var body = req.body; // funciona porque tenemos el body parser, si no saldría undefined
 
-    var usuario = new Usuario({
+    var hospital = new Hospital({
         nombre: body.nombre,
-        email: body.email,
-        password: bcrypt.hashSync(body.password, 10),
-        role: body.role
+        usuario: req.usuario._id,
     });
 
-    usuario.save((err, usuarioGuardado) => {
+    hospital.save((err, hospitalGuardado) => {
         if (err) {
 
             // No funciona
@@ -139,17 +132,15 @@ app.post('/', [mdAutenticacion.verificaToken], (req, res) => {
 
             return res.status(status).json({
                 ok: false,
-                mensaje: 'Error al crear usuario',
+                mensaje: 'Error al crear hospital',
                 errors: err
             });
 
         }
 
-        if (usuarioGuardado) usuarioGuardado.password = null;
-
         return res.status(201).json({
             ok: true,
-            usuario: usuarioGuardado
+            hospital: hospitalGuardado
         });
     });
 
@@ -157,14 +148,14 @@ app.post('/', [mdAutenticacion.verificaToken], (req, res) => {
 });
 
 // =============================
-// BORRAR USUARIO POR ID
+// BORRAR HOSPITAL POR ID
 // =============================
 
 app.delete('/:id', [mdAutenticacion.verificaToken], (req, res) => {
 
     var id = req.params.id;
 
-    Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
+    Hospital.findByIdAndRemove(id, (err, hospitalBorrado) => {
 
         if (err) {
 
@@ -174,28 +165,26 @@ app.delete('/:id', [mdAutenticacion.verificaToken], (req, res) => {
 
             return res.status(status).json({
                 ok: false,
-                mensaje: 'Error al borrar usuario',
+                mensaje: 'Error al borrar hospital',
                 errors: err
             });
 
         }
 
-        if (!usuarioBorrado) {
+        if (!hospitalBorrado) {
 
 
             return res.status(400).json({
                 ok: false,
-                mensaje: 'Usuario inexistente',
+                mensaje: 'Hospital inexistente',
                 errors: err
             });
 
         }
 
-        usuarioBorrado.password = null;
-
         return res.status(200).json({
             ok: true,
-            usuario: usuarioBorrado
+            hospital: hospitalBorrado
         });
 
 
