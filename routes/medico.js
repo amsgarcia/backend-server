@@ -15,7 +15,7 @@ app.get('/', (req, res, next) => { // next es usado en middlewares etc, pero no 
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Medico.find({}, 'nombre hospital')
+    Medico.find({}, 'nombre hospital usuario img')
         .skip(desde) // se salta los primeros....desde ¡ya está paginado!
         .limit(5) //limita el resultado a los cinco primeros registros.
         .populate('usuario', 'nombre email')

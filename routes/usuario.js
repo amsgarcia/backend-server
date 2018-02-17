@@ -15,7 +15,7 @@ app.get('/', (req, res, next) => { // next es usado en middlewares etc, pero no 
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({}, 'nombre email img role')
+    Usuario.find({}, 'nombre email img role google')
         .skip(desde) // se salta los primeros....desde ¡ya está paginado!
         .limit(5) //limita el resultado a los cinco primeros registros.
         .exec((err, usuarios) => {
@@ -116,10 +116,11 @@ app.put('/:id', [mdAutenticacion.verificaToken], (req, res) => {
 
 
 // =============================
-// CREAR UN NUEVO USUARIO
+// CREAR UN NUEVO USUARIO - QUITAMOS TOKEN DE MOMENTO
 // =============================
 
-app.post('/', [mdAutenticacion.verificaToken], (req, res) => {
+// app.post('/', [mdAutenticacion.verificaToken], (req, res) => {
+app.post('/', (req, res) => {
 
     var body = req.body; // funciona porque tenemos el body parser, si no saldría undefined
 

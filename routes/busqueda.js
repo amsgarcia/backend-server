@@ -122,7 +122,7 @@ function buscarMedicos(busqueda, regexp) {
 
     return new Promise((resolve, reject) => {
 
-        Medico.find({ nombre: regexp })
+        Medico.find({ nombre: regexp }, 'nombre hospital usuario img')
             .populate('usuario', 'nombre email') // los campos nombre email de usuario
             .populate('hospital') // todos los campos de hospital
             .exec((err, medicos) => {

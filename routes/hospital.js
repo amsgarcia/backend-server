@@ -15,7 +15,7 @@ app.get('/', (req, res, next) => { // next es usado en middlewares etc, pero no 
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Hospital.find({}, 'nombre usuario')
+    Hospital.find({}, 'nombre usuario img')
         .skip(desde) // se salta los primeros....desde ¡ya está paginado!
         .limit(5) //limita el resultado a los cinco primeros registros.
         .populate('usuario', 'nombre email') // Devuelve el objeto usuario en vez de su id. 2do argumento filtra los campos que queremos devolver
@@ -49,6 +49,38 @@ app.get('/', (req, res, next) => { // next es usado en middlewares etc, pero no 
         });
 
 });
+
+
+// ==========================================
+// Obtener Hospital por ID
+// ==========================================
+app.get('/:id', (req, res) => {
+    var id = req.params.id;
+
+    Hospital.findById(id)
+        .populate('nombre img')
+        .populate('usuario', 'nombre img email')
+        .exec((err, hospital) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error al buscar hospital',
+                    errors: err
+                });
+            }
+            if (!hospital) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'El hospital con el id ' + id + 'no existe',
+                    errors: { message: 'No existe un hospital con ese ID' }
+                });
+            }
+            res.status(200).json({
+                ok: true,
+                hospital: hospital
+            });
+        })
+})
 
 
 // =============================
