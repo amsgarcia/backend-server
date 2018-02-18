@@ -52,6 +52,47 @@ app.get('/', (req, res, next) => { // next es usado en middlewares etc, pero no 
 });
 
 
+
+// =============================
+// OBTENER MEDICO POR ID
+// =============================
+app.get('/:id', (req, res) => { // next es usado en middlewares etc, pero no en CRUD REST normalmente
+
+    id = req.params.id;
+
+    Medico.findById(id)
+        .populate('usuario', 'nombre email img')
+        .populate('hospital')
+        .exec((err, medico) => {
+
+            if (err) {
+
+                // No funciona
+                var status = err.status ? err.status : 500;
+                console.log(err.status);
+
+                return res.status(status).json({
+                    ok: false,
+                    mensaje: 'Error al actualizar médico',
+                    errors: err
+                });
+
+            }
+
+            if (!medico) return res.status(400).json({
+                ok: false,
+                mensaje: 'El médico no existe',
+                errors: { message: 'No existe un médico con el id ' + id }
+            });
+
+            return res.status(200).json({
+                ok: true,
+                medico: medico
+            });
+        });
+});
+
+
 // =============================
 // ACTUALIZAR MEDICO
 // =============================
@@ -101,7 +142,7 @@ app.put('/:id', [mdAutenticacion.verificaToken], (req, res) => {
             return res.status(200).json({
                 ok: true,
                 mensaje: 'Médico actualizado',
-                hospital: medicoGuardado
+                medico: medicoGuardado
 
             });
 
@@ -187,7 +228,7 @@ app.delete('/:id', [mdAutenticacion.verificaToken], (req, res) => {
 
         return res.status(200).json({
             ok: true,
-            hospital: medicoBorrado
+            medico: medicoBorrado
         });
 
 

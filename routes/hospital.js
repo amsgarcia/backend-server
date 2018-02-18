@@ -57,8 +57,7 @@ app.get('/', (req, res, next) => { // next es usado en middlewares etc, pero no 
 app.get('/:id', (req, res) => {
     var id = req.params.id;
 
-    Hospital.findById(id)
-        .populate('nombre img')
+    Hospital.findById(id, 'nombre usuario img')
         .populate('usuario', 'nombre img email')
         .exec((err, hospital) => {
             if (err) {
