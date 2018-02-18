@@ -57,7 +57,7 @@ app.get('/', (req, res, next) => { // next es usado en middlewares etc, pero no 
 // ACTUALIZAR USUARIO
 // =============================
 
-app.put('/:id', [mdAutenticacion.verificaToken], (req, res) => {
+app.put('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdminOMismoUsuario], (req, res) => {
 
     var id = req.params.id;
     var body = req.body; // funciona porque tenemos el body parser, si no saldría undefined
@@ -161,7 +161,7 @@ app.post('/', (req, res) => {
 // BORRAR USUARIO POR ID
 // =============================
 
-app.delete('/:id', [mdAutenticacion.verificaToken], (req, res) => {
+app.delete('/:id', [mdAutenticacion.verificaToken, mdAutenticacion.verificaAdmin], (req, res) => {
 
     var id = req.params.id;
 
