@@ -9,6 +9,29 @@ var Usuario = require('../models/usuario');
 
 const GoogleAuth = require('google-auth-library');
 
+
+// =================================
+// RENOVAR TOKEN
+// =================================
+
+var mdAutenticacion = require('../middlewares/autenticacion');
+
+app.get('/newtoken', mdAutenticacion.verificaToken, (req, res) => {
+
+    // Crear un JWT (Token)
+    var token = jwt.sign({ usuario: req.usuario }, // payload
+        config.SEED, // seed aleatorio que queramos poner difícil de adivinar.
+        { expiresIn: config.TOKEN_EXPIRES_IN } // segundos 
+    )
+
+    return res.status(200).json({
+        ok: true,
+        token: token
+    });
+
+});
+
+
 // =================================
 // AUTENTICACION GOOGLE
 // =================================
